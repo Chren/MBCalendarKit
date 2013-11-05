@@ -131,7 +131,6 @@
     [super awakeFromNib];
     [self initWithDisplayMode:CKCalendarViewModeMonth];
     [self.table reloadData];
-    self.backgroundColor = [UIColor redColor];
 }
 
 
