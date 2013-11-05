@@ -82,6 +82,8 @@
 		46BFBCE81715FB3F00D4733E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46BFBCC21715FB3F00D4733E /* UIKit.framework */; };
 		46BFBCE91715FB3F00D4733E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46BFBCC41715FB3F00D4733E /* Foundation.framework */; };
 		46F1BC7317188D7200F8356F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 46BFBCC61715FB3F00D4733E /* CoreGraphics.framework */; };
+		CEBCF2631828C998000BABC6 /* CKCalendarTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF2611828C998000BABC6 /* CKCalendarTestViewController.m */; };
+		CEBCF2641828C998000BABC6 /* CKCalendarTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CEBCF2621828C998000BABC6 /* CKCalendarTestViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +173,9 @@
 		46BFBCC61715FB3F00D4733E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		46BFBCE51715FB3F00D4733E /* MBCalendarKitTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MBCalendarKitTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		46BFBCE61715FB3F00D4733E /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		CEBCF2601828C998000BABC6 /* CKCalendarTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CKCalendarTestViewController.h; sourceTree = "<group>"; };
+		CEBCF2611828C998000BABC6 /* CKCalendarTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CKCalendarTestViewController.m; sourceTree = "<group>"; };
+		CEBCF2621828C998000BABC6 /* CKCalendarTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CKCalendarTestViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -352,6 +357,9 @@
 				464A8707171F174D00E7AB19 /* main.m */,
 				464A8708171F174D00E7AB19 /* MBCalendarKit-Info.plist */,
 				464A8709171F174D00E7AB19 /* MBCalendarKit-Prefix.pch */,
+				CEBCF2601828C998000BABC6 /* CKCalendarTestViewController.h */,
+				CEBCF2611828C998000BABC6 /* CKCalendarTestViewController.m */,
+				CEBCF2621828C998000BABC6 /* CKCalendarTestViewController.xib */,
 			);
 			name = "Demo App";
 			sourceTree = "<group>";
@@ -475,6 +483,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEBCF2641828C998000BABC6 /* CKCalendarTestViewController.xib in Resources */,
 				46AB9430171CE9BA0082492E /* Icon-72@2x.png in Resources */,
 				46AB9432171CE9BA0082492E /* Icon@2x.png in Resources */,
 				46AB9434171CE9BA0082492E /* iTunesArtwork.png in Resources */,
@@ -552,6 +561,7 @@
 				464A8740171F174D00E7AB19 /* main.m in Sources */,
 				464A8787171F3D8100E7AB19 /* CKCalendarViewController.m in Sources */,
 				46895C9A171F5AA60072DBCF /* CKDemoViewController.m in Sources */,
+				CEBCF2631828C998000BABC6 /* CKCalendarTestViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -662,6 +672,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MBCalendarKit/MBCalendarKit-Prefix.pch";
 				INFOPLIST_FILE = "MBCalendarKit/MBCalendarKit-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = MBCalendarKit;
 				PROVISIONING_PROFILE = "3A635F71-F96D-4EAF-AAB6-258F2623E55C";
@@ -749,6 +760,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MBCalendarKit/MBCalendarKit-Prefix.pch";
 				INFOPLIST_FILE = "MBCalendarKit/MBCalendarKit-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = MBCalendarKit;
 				PROVISIONING_PROFILE = "";
@@ -763,6 +775,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MBCalendarKit/MBCalendarKit-Prefix.pch";
 				INFOPLIST_FILE = "MBCalendarKit/MBCalendarKit-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = MBCalendarKit;
 				PROVISIONING_PROFILE = "";

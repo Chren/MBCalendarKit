@@ -31,6 +31,7 @@
 @property (nonatomic, assign) id<CKCalendarViewDataSource> dataSource;
 @property (nonatomic, assign) id<CKCalendarViewDelegate> delegate;
 
+@property (nonatomic, assign) BOOL isInited;
 /* Initializer */
 
 - (id)init;

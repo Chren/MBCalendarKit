@@ -18,7 +18,8 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-@interface CKCalendarView () <CKCalendarHeaderViewDataSource, CKCalendarHeaderViewDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface CKCalendarView () <CKCalendarHeaderViewDataSource, CKCalendarHeaderViewDelegate, UIGestureRecognizerDelegate,
+    UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) NSMutableSet* spareCells;
 @property (nonatomic, strong) NSMutableSet* usedCells;
@@ -35,11 +36,13 @@
 
 @property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
-
+@property (nonatomic, strong) UISwipeGestureRecognizer *downSwipeGesture;
+@property (nonatomic, strong) UISwipeGestureRecognizer *upSwipeGesture;
 @property (nonatomic, strong) UIView *wrapper;
 @property (nonatomic, strong) NSDate *previousDate;
 @property (nonatomic, assign) BOOL isAnimating;
-
+@property (nonatomic, assign) CGPoint startPos;
+@property (nonatomic, assign) BOOL isSwiped;
 @end
 
 @implementation CKCalendarView
@@ -52,40 +55,66 @@
     self = [super init];
     
     if (self) {
-        _locale = [NSLocale currentLocale];
-        _calendar = [NSCalendar currentCalendar];
-        [_calendar setLocale:_locale];
-        _timeZone = nil;
-        _date = [NSDate date];
-        _displayMode = CKCalendarViewModeMonth;
-        _spareCells = [NSMutableSet new];
-        _usedCells = [NSMutableSet new];
-        _selectedIndex = [_calendar daysFromDate:[self _firstVisibleDateForDisplayMode:_displayMode] toDate:_date];
-        _headerView = [CKCalendarHeaderView new];
-        
-        
-        //  Accessory Table
-        _table = [UITableView new];
-        [_table setDelegate:self];
-        [_table setDataSource:self];
-        
-        [_table registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
-        [_table registerClass:[UITableViewCell class] forCellReuseIdentifier:@"noDataCell"];
-        
-        //  Events for selected date
-        _events = [NSMutableArray new];
-        
-        //  Used for animation
-        _previousDate = [NSDate date];
-        _wrapper = [UIView new];
-        _isAnimating = NO;
-        
-        //  Date bounds
-        _minimumDate = nil;
-        _maximumDate = nil;
-        
+        [self initWithDisplayMode:CKCalendarViewModeMonth];
     }
     return self;
+}
+
+-(void)initWithDisplayMode:(CKCalendarDisplayMode)CalendarDisplayMode
+{
+    _displayMode = CalendarDisplayMode;
+    _locale = [NSLocale currentLocale];
+    _calendar = [NSCalendar currentCalendar];
+    [_calendar setLocale:_locale];
+    _timeZone = nil;
+    _date = [NSDate date];
+    _displayMode = CKCalendarViewModeMonth;
+    _spareCells = [NSMutableSet new];
+    _usedCells = [NSMutableSet new];
+    _selectedIndex = [_calendar daysFromDate:[self _firstVisibleDateForDisplayMode:_displayMode] toDate:_date];
+    _headerView = [CKCalendarHeaderView new];
+    
+    
+    //  Accessory Table
+    _table = [UITableView new];
+    [_table setDelegate:self];
+    [_table setDataSource:self];
+
+    [_table registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+    [_table registerClass:[UITableViewCell class] forCellReuseIdentifier:@"noDataCell"];
+    
+    [[self superview] insertSubview:[self table] belowSubview:self];
+    //
+    //  Events for selected date
+    _events = [NSMutableArray new];
+    
+    //  Used for animation
+    _previousDate = [NSDate date];
+    _wrapper = [UIView new];
+    _isAnimating = NO;
+    
+    //  Date bounds
+    _minimumDate = nil;
+    _maximumDate = nil;
+    
+    // Init Guesture
+    self.upSwipeGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    self.upSwipeGesture.direction = UISwipeGestureRecognizerDirectionUp;
+    self.upSwipeGesture.delegate = self;
+    [self addGestureRecognizer:self.upSwipeGesture];
+    self.downSwipeGesture = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipe:)];
+    self.downSwipeGesture.direction = UISwipeGestureRecognizerDirectionDown;
+    self.downSwipeGesture.delegate = self;
+    [self addGestureRecognizer:self.downSwipeGesture];
+    self.tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapHandler:)];
+    [self addGestureRecognizer:self.tapGesture];
+    
+    
+    [[self layer] setShadowColor:[[UIColor darkGrayColor] CGColor]];
+    [[self layer] setShadowOffset:CGSizeMake(0, 3)];
+    [[self layer] setShadowOpacity:1.0];
+    
+    self.isInited = YES;
 }
 
 - (id)initWithMode:(CKCalendarDisplayMode)CalendarDisplayMode
@@ -96,6 +125,15 @@
     }
     return self;
 }
+
+- (void)awakeFromNib
+{
+    [super awakeFromNib];
+    [self initWithDisplayMode:CKCalendarViewModeMonth];
+    [self.table reloadData];
+    self.backgroundColor = [UIColor redColor];
+}
+
 
 #pragma mark - Reload
 
@@ -123,17 +161,17 @@
 }
 
 #pragma mark - View Hierarchy
-
-- (void)willMoveToSuperview:(UIView *)newSuperview
-{
-    [[self layer] setShadowColor:[[UIColor darkGrayColor] CGColor]];
-    [[self layer] setShadowOffset:CGSizeMake(0, 3)];
-    [[self layer] setShadowOpacity:1.0];
-    
-    [self reloadAnimated:NO];
-    
-    [super willMoveToSuperview:newSuperview];
-}
+//
+//- (void)willMoveToSuperview:(UIView *)newSuperview
+//{
+//    [[self layer] setShadowColor:[[UIColor darkGrayColor] CGColor]];
+//    [[self layer] setShadowOffset:CGSizeMake(0, 3)];
+//    [[self layer] setShadowOpacity:1.0];
+//    
+////    [self reloadAnimated:NO];
+//    
+//    [super willMoveToSuperview:newSuperview];
+//}
 
 -(void)removeFromSuperview
 {
@@ -148,26 +186,30 @@
 
 #pragma mark - Size
 
-//  Ensure that the calendar always has the correct size.
-- (void)setFrame:(CGRect)frame
-{
-    [self setFrame:frame animated:NO];
-}
-
-- (void)setFrame:(CGRect)frame animated:(BOOL)animated
-{
-    frame.size = [self _rectForDisplayMode:[self displayMode]].size;
-    
-    if (animated) {
-        [UIView animateWithDuration:0.4 animations:^{
-            [super setFrame:frame];    
-        }];
-    }
-    else
-    {
-        [super setFrame:frame];
-    }
-}
+////  Ensure that the calendar always has the correct size.
+//- (void)setFrame:(CGRect)frame
+//{
+//    [self setFrame:frame animated:NO];
+//}
+//
+//- (void)setFrame:(CGRect)frame animated:(BOOL)animated
+//{
+//    if (!self.isInited) {
+//        [super setFrame:frame];
+//        return;
+//    }
+//    frame.size = [self _rectForDisplayMode:[self displayMode]].size;
+//    
+//    if (animated) {
+//        [UIView animateWithDuration:0.4 animations:^{
+//            [super setFrame:frame];    
+//        }];
+//    }
+//    else
+//    {
+//        [super setFrame:frame];
+//    }
+//}
 
 - (CGRect)_rectForDisplayMode:(CKCalendarDisplayMode)displayMode
 {
@@ -271,8 +313,7 @@
     tableFrame.origin.y += [self frame].size.height;
     
     [[self table] setFrame:tableFrame animated:animated];
-    
-    [[self superview] insertSubview:[self table] belowSubview:self];
+
 }
 
 
@@ -563,7 +604,7 @@
 
 - (void)setDisplayMode:(CKCalendarDisplayMode)displayMode
 {
-    [self setDisplayMode:displayMode animated:NO];
+    [self setDisplayMode:displayMode animated:YES];
 }
 
 - (void)setDisplayMode:(CKCalendarDisplayMode)displayMode animated:(BOOL)animated
@@ -1143,19 +1184,25 @@
 }
 
 #pragma mark - Touch Handling
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *t = [touches anyObject];
-    
     CGPoint p = [t locationInView:self];
-    
-    [self pointInside:p withEvent:event];
+    self.startPos = p;
+    self.isSwiped = NO;
 }
 
-- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+//- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+//{
+//    UITouch *t = [touches anyObject];
+//    
+//    CGPoint p = [t locationInView:self];
+//    
+//    [self pointInside:p withEvent:event];
+//}
+
+- (void)touchUpInsideCell:(CGPoint)point withEvent:(UIEvent *)event
 {
-    
     CGRect bounds = [self bounds];
     bounds.origin.y += [self headerView].frame.size.height;
     bounds.size.height -= [self headerView].frame.size.height;
@@ -1172,7 +1219,7 @@
                 index = [cell index];
                 break;
             }
-
+            
         }
         
         //  Clip the index to minimum and maximum dates
@@ -1185,7 +1232,7 @@
         {
             index = [self _indexFromDate:[self minimumDate]];
         }
-
+        
         // Save the new index
         [self setSelectedIndex:index];
         
@@ -1201,19 +1248,78 @@
             
         }
     }
-    
-    return [super pointInside:point withEvent:event];
 }
+
+//- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+//{
+//    
+//    CGRect bounds = [self bounds];
+//    bounds.origin.y += [self headerView].frame.size.height;
+//    bounds.size.height -= [self headerView].frame.size.height;
+//    
+//    if(CGRectContainsPoint([self _rectForCellsForDisplayMode:_displayMode], point)){
+//        /* Highlight and select the appropriate cell */
+//        
+//        NSUInteger index = [self selectedIndex];
+//        
+//        //  Get the index from the cell we're in
+//        for (CKCalendarCell *cell in [self usedCells]) {
+//            CGRect rect = [cell frame];
+//            if (CGRectContainsPoint(rect, point)) {
+//                index = [cell index];
+//                break;
+//            }
+//
+//        }
+//        
+//        //  Clip the index to minimum and maximum dates
+//        NSDate *date = [self _dateFromIndex:index];
+//        
+//        if ([self _dateIsAfterMaximumDate:date]) {
+//            index = [self _indexFromDate:[self maximumDate]];
+//        }
+//        else if([self _dateIsBeforeMinimumDate:date])
+//        {
+//            index = [self _indexFromDate:[self minimumDate]];
+//        }
+//
+//        // Save the new index
+//        [self setSelectedIndex:index];
+//        
+//        //  Update the cell highlighting
+//        for (CKCalendarCell *cell in [self usedCells]) {
+//            if ([cell index] == [self selectedIndex]) {
+//                [cell setSelected];
+//            }
+//            else
+//            {
+//                [cell setDeselected];
+//            }
+//            
+//        }
+//    }
+//    
+//    return [super pointInside:point withEvent:event];
+//}
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+//    NSDate *firstDate = [self _firstVisibleDateForDisplayMode:[self displayMode]];
+//    NSDate *dateToSelect = [[self calendar] dateByAddingDays:[self selectedIndex] toDate:firstDate];
+//    
+//    UITouch *t = [touches anyObject];
+//    CGPoint p = [t locationInView:self];
+//    
+//
+//    BOOL animated = ![[self calendar] date:[self date] isSameMonthAs:dateToSelect];
+//    
+//    [self setDate:dateToSelect animated:animated];
     
-    NSDate *firstDate = [self _firstVisibleDateForDisplayMode:[self displayMode]];
-    NSDate *dateToSelect = [[self calendar] dateByAddingDays:[self selectedIndex] toDate:firstDate];
+//    if (!self.isSwiped) {
+//        [self touchUpInsideCell:p withEvent:event];
+//    }
+
     
-    BOOL animated = ![[self calendar] date:[self date] isSameMonthAs:dateToSelect];
-    
-    [self setDate:dateToSelect animated:animated];
 }
 
 // If a touch was cancelled, reset the index
@@ -1228,4 +1334,58 @@
     NSDate *dateToSelect = [[self calendar] dateByAddingDays:[self selectedIndex] toDate:firstDate];
     [self setDate:dateToSelect animated:NO];
 }
+
+#pragma mark - Gesture Handle
+- (void)handleSwipe:(UISwipeGestureRecognizer *)recognizer
+{
+    self.isSwiped = YES;
+    if (recognizer.direction == UISwipeGestureRecognizerDirectionDown)
+    {
+        if (self.displayMode != CKCalendarViewModeMonth) {
+            [self setDisplayMode:CKCalendarViewModeMonth];
+        }
+    }else if(recognizer.direction == UISwipeGestureRecognizerDirectionUp){
+        if (self.displayMode != CKCalendarViewModeWeek) {
+            [self setDisplayMode:CKCalendarViewModeWeek];
+        }
+    }
+}
+
+- (void)tapHandler:(UITapGestureRecognizer *)gesture
+{
+    
+    CGPoint location = [gesture locationInView:self];
+    
+    if ([gesture state] != UIGestureRecognizerStateEnded) {
+        return;
+    }
+    [self touchUpInsideCell:location withEvent:Nil];
+    
+    NSDate *firstDate = [self _firstVisibleDateForDisplayMode:[self displayMode]];
+    NSDate *dateToSelect = [[self calendar] dateByAddingDays:[self selectedIndex] toDate:firstDate];
+    
+    BOOL animated = ![[self calendar] date:[self date] isSameMonthAs:dateToSelect];
+    
+    [self setDate:dateToSelect animated:animated];
+}
+
+#pragma mark - Expand/unexpand calendar
+-(void)expandCalendar
+{
+    for (CKCalendarCell *cell in [self usedCells]) {
+        if ([cell index] == [self selectedIndex]) {
+            
+        }
+    }
+}
+
+-(void)unexpandCalendar
+{
+    for (CKCalendarCell *cell in [self usedCells]) {
+        if ([cell index] == [self selectedIndex]) {
+            
+        }
+    }
+}
+
 @end

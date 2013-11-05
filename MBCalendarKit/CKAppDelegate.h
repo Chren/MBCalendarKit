@@ -9,11 +9,11 @@
 #import <UIKit/UIKit.h>
 
 #import "CalendarKit/CalendarKit.h"
-
+#import "CKCalendarTestViewController.h"
 @interface CKAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
 @property (strong, nonatomic) CKCalendarViewController *viewController;
-
+@property (strong, nonatomic) CKCalendarTestViewController *testViewController;
 @end

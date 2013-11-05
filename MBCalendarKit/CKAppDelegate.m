@@ -25,8 +25,9 @@
     // Override point for customization after application launch.
     
     self.viewController = [CKDemoViewController new];
-    
-    self.window.rootViewController = self.viewController;
+    self.testViewController = [CKCalendarTestViewController new];
+    self.window.rootViewController = self.testViewController;
+//    self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
     
     return YES;
